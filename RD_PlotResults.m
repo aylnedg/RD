@@ -1,7 +1,7 @@
-function RD_PlotResults(log)
+function RD_PlotResults(sim_log)
 %RD_PLOTRESULTS  Visualise the complete R&D mission simulation results
 %
-%   RD_PlotResults(log)  generates a comprehensive set of plots showing:
+%   RD_PlotResults(sim_log)  generates a comprehensive set of plots showing:
 %     1. Range vs Time (all phases, with phase boundaries)
 %     2. Relative trajectory in LVLH frame (V-bar approach diagram)
 %     3. Per-phase relative trajectory (CW plane + cross-track)
@@ -9,23 +9,23 @@ function RD_PlotResults(log)
 %     5. Sensor availability matrix per phase
 %
 %   Input:
-%     log  struct array  Simulation log from RD_RunAllPhases
+%     sim_log  struct array  Simulation sim_log from RD_RunAllPhases
 %
 % See also: RD_RunAllPhases, RD_Fehse_PhaseConfig
 
 % Copyright 2024 - Extended R&D Simulation
 
-if isempty(log)
-    warning('RD_PlotResults: empty log'); return;
+if isempty(sim_log)
+    warning('RD_PlotResults: empty sim_log'); return;
 end
 
 % Extract time-series
-t_s      = [log.t];
-phase_id = [log.phase_id];
-range_m  = [log.range_m];
-rel_pos  = cell2mat({log.rel_pos_LVLH});   % 3 × N
-F_cmd    = cell2mat({log.F_cmd});           % 3 × N
-prop     = [log.propellant_kg];
+t_s      = [sim_log.t];
+phase_id = [sim_log.phase_id];
+range_m  = [sim_log.range_m];
+rel_pos  = cell2mat({sim_log.rel_pos_LVLH});   % 3 × N
+F_cmd    = cell2mat({sim_log.F_cmd});           % 3 × N
+prop     = [sim_log.propellant_kg];
 
 phase_colors = [0.8 0.2 0.2;   % 0 Launch – red
                 0.2 0.6 0.9;   % 1 Phasing – blue

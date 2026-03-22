@@ -5,7 +5,7 @@
 %   to docking, cycling through all 7 phases defined by Fehse (2003).
 %
 %   Outputs:
-%     log  struct array  One entry per simulated time step containing:
+%     sim_log  struct array  One entry per simulated time step containing:
 %                        .t, .phase_id, .phase_name,
 %                        .rel_pos_LVLH, .rel_vel_LVLH,
 %                        .abs_pos_ECI, .abs_vel_ECI,
@@ -15,8 +15,8 @@
 %                        .propellant_kg    (accumulated)
 %
 %   Usage:
-%     log = RD_RunAllPhases();
-%     RD_PlotResults(log);
+%     sim_log = RD_RunAllPhases();
+%     RD_PlotResults(sim_log);
 %
 % Reference:
 %   Fehse, W. (2003). Automated Rendezvous and Docking of Spacecraft.
@@ -95,10 +95,10 @@ prop_remaining = 2000;  % kg  initial propellant mass
 %% -----------------------------------------------------------------------
 %  4. Phase-by-phase simulation
 % -----------------------------------------------------------------------
-log   = struct('t',{},'phase_id',{},'phase_name',{},'rel_pos_LVLH',{}, ...
+sim_log   = struct('t',{},'phase_id',{},'phase_name',{},'rel_pos_LVLH',{}, ...
                'rel_vel_LVLH',{},'abs_pos_ECI',{},'abs_vel_ECI',{}, ...
                'att_quat',{},'ang_rate',{},'range_m',{},'F_cmd',{}, ...
-               'T_cmd',{},'sensor_meas',{},'propellant_kg',{});  % time-series log
+               'T_cmd',{},'sensor_meas',{},'propellant_kg',{});  % time-series sim_log
 t_now = 0;    % s
 
 % Sun and magnetic field (simplified: constant direction for this demo)
@@ -130,7 +130,7 @@ for i = 1:numel(t_phase)
     xdot = RD_RelativeDynamics(t, x_kep_chaser, F_cmd, T_cmd, params_dyn);
     x_kep_chaser = x_kep_chaser + xdot * dt_final;
 
-    log = append_log(log, t, 0, 'Launch', zeros(3,1), zeros(3,1), ...
+    sim_log = append_log(sim_log, t, 0, 'Launch', zeros(3,1), zeros(3,1), ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), norm(x_kep_chaser(1:3)-x_kep_target(1:3)), ...
                      F_cmd, T_cmd, meas, prop_remaining);
@@ -180,7 +180,7 @@ for i = 1:numel(t_phase)
 
     prop_remaining = prop_remaining - norm(F_cmd) * dt_far / (300*9.81);
 
-    log = append_log(log, t, 1, 'Phasing', rel_pos_LVLH, rel_vel_LVLH, ...
+    sim_log = append_log(sim_log, t, 1, 'Phasing', rel_pos_LVLH, rel_vel_LVLH, ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), range, F_cmd, T_cmd, meas, prop_remaining);
 end
@@ -219,7 +219,7 @@ for i = 1:10000
 
     prop_remaining = prop_remaining - norm(F_cmd) * dt_far / (220*9.81);
 
-    log = append_log(log, t, 2, 'FarRendezvous', x_cw(1:3), x_cw(4:6), ...
+    sim_log = append_log(sim_log, t, 2, 'FarRendezvous', x_cw(1:3), x_cw(4:6), ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), range, F_cmd, T_cmd, meas, prop_remaining);
 end
@@ -257,7 +257,7 @@ for i = 1:50000
 
     prop_remaining = prop_remaining - norm(F_cmd) * dt_close / (220*9.81);
 
-    log = append_log(log, t, 3, 'Homing', x_cw(1:3), x_cw(4:6), ...
+    sim_log = append_log(sim_log, t, 3, 'Homing', x_cw(1:3), x_cw(4:6), ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), range, F_cmd, T_cmd, meas, prop_remaining);
 end
@@ -295,7 +295,7 @@ for i = 1:50000
 
     prop_remaining = prop_remaining - norm(F_cmd) * dt_close / (220*9.81);
 
-    log = append_log(log, t, 4, 'Closing', x_cw(1:3), x_cw(4:6), ...
+    sim_log = append_log(sim_log, t, 4, 'Closing', x_cw(1:3), x_cw(4:6), ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), range, F_cmd, T_cmd, meas, prop_remaining);
 end
@@ -333,7 +333,7 @@ for i = 1:50000
 
     prop_remaining = prop_remaining - norm(F_cmd) * dt_final / (220*9.81);
 
-    log = append_log(log, t, 5, 'FinalApproach', x_cw(1:3), x_cw(4:6), ...
+    sim_log = append_log(sim_log, t, 5, 'FinalApproach', x_cw(1:3), x_cw(4:6), ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), range, F_cmd, T_cmd, meas, prop_remaining);
 end
@@ -365,7 +365,7 @@ for i = 1:300  % 300 s max for docking
     % During docking: spring-damper contact keeps spacecraft together
     x_cw(4:6) = x_cw(4:6) * 0.95;  % Damping of residual velocity
 
-    log = append_log(log, t, 6, 'Docking', x_cw(1:3), x_cw(4:6), ...
+    sim_log = append_log(sim_log, t, 6, 'Docking', x_cw(1:3), x_cw(4:6), ...
                      x_kep_chaser(1:3), x_kep_chaser(4:6), ...
                      [1;0;0;0], zeros(3,1), norm(x_cw(1:3)), ...
                      F_cmd, T_cmd, meas, prop_remaining);
@@ -381,19 +381,19 @@ fprintf('\n==========================================================\n');
 fprintf('  Mission Complete!\n');
 fprintf('  Total simulated time : %.1f hours\n', t_now/3600);
 fprintf('  Propellant used      : %.1f kg\n', 2000 - prop_remaining);
-fprintf('  Total log entries    : %d\n', numel(log));
+fprintf('  Total sim_log entries    : %d\n', numel(sim_log));
 fprintf('==========================================================\n\n');
 
 %% -----------------------------------------------------------------------
 %  6. Post-processing plots
 % -----------------------------------------------------------------------
-RD_PlotResults(log);
+RD_PlotResults(sim_log);
 
 %% -----------------------------------------------------------------------
 %  Local functions
 % -----------------------------------------------------------------------
 
-function log = append_log(log, t, ph_id, ph_name, rp, rv, pos, vel, q, w, r, F, T, meas, prop)
+function sim_log = append_log(sim_log, t, ph_id, ph_name, rp, rv, pos, vel, q, w, r, F, T, meas, prop)
     entry.t              = t;
     entry.phase_id       = ph_id;
     entry.phase_name     = ph_name;
@@ -408,7 +408,7 @@ function log = append_log(log, t, ph_id, ph_name, rp, rv, pos, vel, q, w, r, F, 
     entry.T_cmd          = T;
     entry.sensor_meas    = meas;
     entry.propellant_kg  = prop;
-    log(end+1) = entry; %#ok<AGROW>
+    sim_log(end+1) = entry; %#ok<AGROW>
 end
 
 function meas = collect_measurements(ph_cfg, trueState)
