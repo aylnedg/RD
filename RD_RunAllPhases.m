@@ -95,7 +95,10 @@ prop_remaining = 2000;  % kg  initial propellant mass
 %% -----------------------------------------------------------------------
 %  4. Phase-by-phase simulation
 % -----------------------------------------------------------------------
-log   = [];   % time-series log
+log   = struct('t',{},'phase_id',{},'phase_name',{},'rel_pos_LVLH',{}, ...
+               'rel_vel_LVLH',{},'abs_pos_ECI',{},'abs_vel_ECI',{}, ...
+               'att_quat',{},'ang_rate',{},'range_m',{},'F_cmd',{}, ...
+               'T_cmd',{},'sensor_meas',{},'propellant_kg',{});  % time-series log
 t_now = 0;    % s
 
 % Sun and magnetic field (simplified: constant direction for this demo)
